@@ -5,11 +5,11 @@
  
  image:
 -  repository: ghcr.io/k8snetworkplumbingwg/whereabouts
-+  repository: thomasferrandiz/hardened-whereabouts
++  repository: rancher/hardened-whereabouts
    pullPolicy: IfNotPresent
    # Overrides the image tag whose default is the chart appVersion.
 -  tag: "latest-amd64"
-+  tag: v0.6-build20230106
++  tag: v0.6-build20230109
  
  updateStrategy: RollingUpdate
  imagePullSecrets: []

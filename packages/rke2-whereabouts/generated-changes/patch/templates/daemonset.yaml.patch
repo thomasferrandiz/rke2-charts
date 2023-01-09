@@ -1,6 +1,6 @@
 --- charts-original/templates/daemonset.yaml
 +++ charts/templates/daemonset.yaml
-@@ -32,6 +32,12 @@
+@@ -32,9 +32,15 @@
          {{- toYaml .Values.podSecurityContext | nindent 8 }}
        containers:
          - name: {{ .Chart.Name }}
@@ -12,4 +12,8 @@
 +              /ip-control-loop -log-level debug
            securityContext:
              {{- toYaml .Values.securityContext | nindent 12 }}
-           image: "{{ .Values.image.repository }}:{{ .Values.image.tag | default .Chart.AppVersion }}"
+-          image: "{{ .Values.image.repository }}:{{ .Values.image.tag | default .Chart.AppVersion }}"
++          image: "{{ template system_default_registry . }}{{ .Values.image.repository }}:{{ .Values.image.tag | default .Chart.AppVersion }}"
+           imagePullPolicy: {{ .Values.image.pullPolicy }}
+           env:
+           - name: WHEREABOUTS_NAMESPACE
