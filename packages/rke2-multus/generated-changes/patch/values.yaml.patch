@@ -19,7 +19,7 @@
      kubernetes.io/arch: amd64
  
  config:
-@@ -103,10 +104,28 @@
+@@ -103,10 +104,29 @@
    serviceAccount: true
    clusterRole: true
    clusterRoleBinding: true
@@ -27,6 +27,7 @@
 +  configMap: false
    daemonSet: true
    customResourceDefinition: true
++  dhcpDaemonSet: false
  
  #tolerations: []
  
