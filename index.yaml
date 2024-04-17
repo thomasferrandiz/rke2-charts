@@ -1,0 +1,38 @@
+apiVersion: v1
+entries:
+  rke2-canal:
+  - apiVersion: v1
+    appVersion: v3.27.3
+    created: "2024-04-17T07:56:21.338653068Z"
+    description: Install Canal Network Plugin.
+    digest: e4444212ce4832e82fa0b23dc98dc54bfa19e8ec016a21341880e7086dc7b7f2
+    home: https://www.projectcalico.org/
+    keywords:
+    - canal
+    maintainers:
+    - email: charts@rancher.com
+      name: Rancher Labs
+    name: rke2-canal
+    sources:
+    - https://github.com/rancher/rke2-charts
+    urls:
+    - assets/rke2-canal/rke2-canal-v3.27.3-build2024040301-rc00.tgz
+    version: v3.27.3-build2024040301-rc00
+  rke2-canal-crd:
+  - apiVersion: v1
+    appVersion: v3.27.3
+    created: "2024-04-17T07:56:21.337968662Z"
+    description: Install CRDs for Canal Network Plugin.
+    digest: b3f47185b52a63c51726898a944d95d823ecbae2bf550755aea23aa188a527ef
+    keywords:
+    - canal
+    maintainers:
+    - email: charts@rancher.com
+      name: Rancher Labs
+    name: rke2-canal-crd
+    sources:
+    - https://github.com/rancher/rke2-charts
+    urls:
+    - assets/rke2-canal/rke2-canal-crd-v3.27.3-build2024040301-rc00.tgz
+    version: v3.27.3-build2024040301-rc00
+generated: "2024-04-17T07:56:21.336710452Z"
