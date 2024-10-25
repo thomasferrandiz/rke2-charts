@@ -1,0 +1,124 @@
+{{- if .Values.thick_plugin }}
+apiVersion: apps/v1
+kind: DaemonSet
+metadata:
+  name: {{ .Release.Name }}
+  namespace: {{ .Release.Namespace }}
+  labels:
+{{- include "multus.labels" . | indent 4 }}
+spec:
+  selector:
+    matchLabels:
+      app: {{ .Chart.Name }}
+  updateStrategy:
+    type: RollingUpdate
+    rollingUpdate:
+      maxUnavailable: 1
+  template:
+    metadata:
+      labels:
+{{- include "multus.labels" . | indent 8 }}
+    spec:
+      hostNetwork: true
+      hostPID: true
+      priorityClassName: system-node-critical
+      {{- with .Values.imagePullSecrets }}
+      imagePullSecrets:
+        {{- toYaml . | nindent 8 }}
+      {{- end }}
+      nodeSelector: {{- toYaml .Values.labels.nodeSelector | nindent 8 }}
+      {{- with .Values.tolerations }}
+      tolerations:
+        {{- toYaml . | trim | nindent 8 }}
+      {{- end }}
+      serviceAccountName: {{ .Values.serviceAccount.name }}
+      initContainers:
+        - name: install-multus-binary
+          image: {{ template "system_default_registry" . }}{{ .Values.image.thick_repository }}:{{ .Values.image.tag }}
+          command:
+            - "cp"
+            - "/usr/src/multus-cni/bin/multus-shim"
+            - "/host/opt/cni/bin/multus-shim"
+          securityContext:
+            privileged: true
+          terminationMessagePolicy: FallbackToLogsOnError
+          volumeMounts:
+            - name: cnibin
+              mountPath: /host/opt/cni/bin
+              mountPropagation: Bidirectional
+      containers:
+        - name: kube-{{ .Chart.Name }}
+          image: {{ template "system_default_registry" . }}{{ .Values.image.thick_repository }}:{{ .Values.image.tag }}
+          imagePullPolicy: {{ .Values.image.pullPolicy }}
+          command: [ "/usr/src/multus-cni/bin/multus-daemon" ]
+          securityContext:
+            privileged: true
+          terminationMessagePolicy: FallbackToLogsOnError
+          volumeMounts:
+            - name: cni
+              mountPath: /host/etc/cni/net.d
+            # multus-daemon expects that cnibin path must be identical between pod and container host.
+            # e.g. if the cni bin is in '/opt/cni/bin' on the container host side, then it should be mount to '/opt/cni/bin' in multus-daemon,
+            # not to any other directory, like '/opt/bin' or '/usr/bin'.
+            - name: cnibin
+              mountPath: /opt/cni/bin
+            - name: host-run
+              mountPath: /host/run
+            - name: host-var-lib-cni-multus
+              mountPath: /var/lib/cni/multus
+            - name: host-var-lib-kubelet
+              mountPath: /var/lib/kubelet
+              mountPropagation: HostToContainer
+            - name: host-run-k8s-cni-cncf-io
+              mountPath: /run/k8s.cni.cncf.io
+            - name: host-run-netns
+              mountPath: /run/netns
+              mountPropagation: HostToContainer
+            {{- if .Values.manifests.configMap }}
+            - name: multus-daemon-config
+              mountPath: /etc/cni/net.d/multus.d
+              readOnly: true
+            {{- end }}
+            - name: hostroot
+              mountPath: /hostroot
+              mountPropagation: HostToContainer
+          env:
+            - name: MULTUS_NODE_NAME
+              valueFrom:
+                fieldRef:
+                  fieldPath: spec.nodeName
+      terminationGracePeriodSeconds: 10
+      volumes:
+        - name: cni
+          hostPath:
+            path: /etc/cni/net.d
+        - name: cnibin
+          hostPath:
+            path: /opt/cni/bin
+        - name: hostroot
+          hostPath:
+            path: /
+        {{- if .Values.manifests.configMap }}
+        - name: multus-daemon-config
+          configMap:
+            name: multus-daemon-config
+            items:
+            - key: daemon-config.json
+              path: daemon-config.json
+        {{- end }}
+        - name: host-run
+          hostPath:
+            path: /run
+        - name: host-var-lib-cni-multus
+          hostPath:
+            path: /var/lib/cni/multus
+        - name: host-var-lib-kubelet
+          hostPath:
+            path: /var/lib/kubelet
+        - name: host-run-k8s-cni-cncf-io
+          hostPath:
+            path: /run/k8s.cni.cncf.io
+        - name: host-run-netns
+          hostPath:
+            path: /run/netns/
+{{- end }}

@@ -12,6 +12,27 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 {{- if .Values.manifests.configMap }}
+{{- if .Values.thick_plugin }}
+kind: ConfigMap
+apiVersion: v1
+metadata:
+  name: {{ .Release.Name }}-{{ .Chart.Version }}-daemon-config
+  namespace: {{ .Release.Namespace }}
+  labels:
+{{- include "multus.labels" . | indent 4 }}
+data:
+  daemon-config.json: |
+    {
+        "chrootDir": "/hostroot",
+        "cniVersion": "0.3.1",
+        "logLevel": "verbose",
+        "logToStderr": true,
+        "cniConfigDir": "/host/etc/cni/net.d",
+        "multusAutoconfigDir": "/host/etc/cni/net.d",
+        "multusConfigFile": "auto",
+        "socketDir": "/host/run/multus/"
+    }
+{{- else }}
 apiVersion: v1
 kind: ConfigMap
 metadata:
@@ -22,4 +43,5 @@ metadata:
 data:
   cni-conf.json: |-
 {{ toJson .Values.config.cni_conf | indent 4 }}
+{{- end }}
 {{- end }}

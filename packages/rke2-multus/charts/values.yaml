@@ -20,6 +20,7 @@
 
 image:
   repository: rancher/hardened-multus-cni
+  thick_repository: rancher/hardened-multus-thick
   tag: v4.1.2-build20241011
   pullPolicy: IfNotPresent
 
@@ -117,6 +118,7 @@ tolerations:
 
 #affinity: {}
 
+thick_plugin: false
 
 ## RANCHER ADDDED INFO ##
 cniplugins:
