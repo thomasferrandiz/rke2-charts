@@ -35,10 +35,10 @@ spec:
       initContainers:
         - name: install-multus-binary
           image: {{ template "system_default_registry" . }}{{ .Values.image.thick_repository }}:{{ .Values.image.tag }}
-          command:
-            - "cp"
-            - "/usr/src/multus-cni/bin/multus-shim"
-            - "/host/opt/cni/bin/multus-shim"
+          command: ["/install_multus"]
+          args:
+            - "--type"
+            - "thick"
           securityContext:
             privileged: true
           terminationMessagePolicy: FallbackToLogsOnError
@@ -52,6 +52,7 @@ spec:
           imagePullPolicy: {{ .Values.image.pullPolicy }}
           command: [ "/usr/src/multus-cni/bin/multus-daemon" ]
           securityContext:
+            runAsUser: 0
             privileged: true
           terminationMessagePolicy: FallbackToLogsOnError
           volumeMounts:
@@ -101,7 +102,7 @@ spec:
         {{- if .Values.manifests.configMap }}
         - name: multus-daemon-config
           configMap:
-            name: multus-daemon-config
+            name: {{ .Release.Name }}-{{ .Chart.Version }}-daemon-config
             items:
             - key: daemon-config.json
               path: daemon-config.json
