@@ -1,5 +1,20 @@
 #!/bin/bash
 set -eu
+
+source $(dirname $0)/create-issue.sh
+
+report-error() {
+    exit_code=$?
+    trap - EXIT INT
+
+    if [[ $exit_code != 0 ]]; then
+        create-issue "Updatecli failed for cilium ${CILIUM_VERSION}" 
+    fi
+
+    exit ${exit_code}
+}
+trap report-error EXIT INT
+
 if [ -n "$CILIUM_VERSION" ]; then
 	current_cilium_version=$(sed -nr 's/^\ version: ('[0-9]+.[0-9]+.[0-9]+')/\1/p' packages/rke2-cilium/generated-changes/patch/Chart.yaml.patch)
 	if [ "v$current_cilium_version" != "$CILIUM_VERSION" ]; then

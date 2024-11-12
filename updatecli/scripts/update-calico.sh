@@ -1,5 +1,20 @@
 #!/bin/bash
 set -eu
+
+source $(dirname $0)/create-issue.sh
+
+report-error() {
+    exit_code=$?
+    trap - EXIT INT
+
+    if [[ $exit_code != 0 ]]; then
+        create-issue "Updatecli failed for calico ${CALICO_VERSION}" 
+    fi
+
+    exit ${exit_code}
+}
+trap report-error EXIT INT
+
 if [ -n "$CALICO_VERSION" ]; then
 	current_calico_version=$(yq '.version' packages/rke2-calico/templates/crd-template/Chart.yaml)
 	if [ "$current_calico_version" != "$CALICO_VERSION" ]; then
