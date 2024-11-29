@@ -3,16 +3,7 @@ set -eux
 
 source $(dirname $0)/create-issue.sh
 
-report-error() {
-    exit_code=$?
-    trap - EXIT INT
-
-    if [[ $exit_code != 0 ]]; then
-        create-issue "Updatecli failed for multus ${MULTUS_VERSION}" 
-    fi
-
-    exit ${exit_code}
-}
+ISSUE_TITLE="Updatecli failed for multus ${MULTUS_VERSION}"
 trap report-error EXIT INT
 
 if [ -n "$MULTUS_VERSION" ]; then
