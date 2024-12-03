@@ -6,6 +6,8 @@ source $(dirname $0)/create-issue.sh
 ISSUE_TITLE="Updatecli failed for calico ${CALICO_VERSION}" 
 trap report-error EXIT INT
 
+exit 2
+
 if [ -n "$CALICO_VERSION" ]; then
 	current_calico_version=$(yq '.version' packages/rke2-calico/templates/crd-template/Chart.yaml)
 	if [ "$current_calico_version" != "$CALICO_VERSION" ]; then
