@@ -6,8 +6,6 @@ source $(dirname $0)/create-issue.sh
 ISSUE_TITLE="Updatecli failed for coredns ${COREDNS_VERSION}" 
 trap report-error EXIT INT
 
-HOMEDIR="/home/azureuser"
-
 if [ -n "$COREDNS_VERSION" ]; then
 	coredns_url=$(yq '.url' packages/rke2-coredns/package.yaml)
 	current_coredns_version=$(awk -F'/coredns-|.tgz' '{print $2}' <<< $coredns_url)
@@ -15,9 +13,9 @@ if [ -n "$COREDNS_VERSION" ]; then
 		echo "Updating Coredns chart to $COREDNS_VERSION"
 		yq -i ".url = \"https://github.com/coredns/helm/releases/download/coredns-${COREDNS_VERSION}/coredns-${COREDNS_VERSION}.tgz\" |
 			.packageVersion = 00" packages/rke2-coredns/package.yaml
-		GOCACHE='${HOMEDIR}/.cache/go-build' GOPATH='${HOMEDIR}/go' PACKAGE='rke2-coredns' make prepare
+		GOCACHE='/home/azureuser/.cache/go-build' GOPATH='/home/azureuser/go' PACKAGE='rke2-coredns' make prepare
 		find packages/rke2-coredns/charts -name '*.orig' -delete
-		GOCACHE='${HOMEDIR}/.cache/go-build' GOPATH='${HOMEDIR}/go' PACKAGE='rke2-coredns' make patch
+		GOCACHE='/home/azureuser/.cache/go-build' GOPATH='/home/azureuser/go' PACKAGE='rke2-coredns' make patch
 		make clean
 	fi
 fi
