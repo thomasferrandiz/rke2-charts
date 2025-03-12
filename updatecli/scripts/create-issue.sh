@@ -1,6 +1,6 @@
 #!/usr/bin/env bash
 
-TARGET_REPOSITORY="rancher/rke2"
+TARGET_REPOSITORY="thomasferrandiz/rke2"
 BODY="Url of the failed run: ${UPDATECLI_GITHUB_WORKFLOW_URL}"
 
 report-error() {
