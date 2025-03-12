@@ -14,7 +14,9 @@ sources:
         draft: false
         prerelease: false
       versionfilter:
-        kind: semver
+        kind: regex
+        # pattern accepts any semver constraint without leading 'v'
+        pattern: "[0-9]+.[0-9]+.[0-9]"
   coredns:
     name: Get coredns image version
     kind: githubrelease
@@ -61,8 +63,8 @@ sources:
         prerelease: false
       versionfilter:
         kind: regex
-        # pattern accepts any semver constraint
-        pattern: "v[0-9]+.[0-9]+.[0-9]+-build[0-9]+"
+        # pattern accepts any semver constraint  without leading 'v'
+        pattern: "[0-9]+.[0-9]+.[0-9]+-build[0-9]+"
 
 targets:
   coredns:
