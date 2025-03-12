@@ -50,7 +50,7 @@ if [ -n "$COREDNS_CHART_VERSION" ]; then
 	fi
 
 	# 3 - update the package version accordingly
-	if [ "$CHART_UPDATED" = false && "$IMAGES_UPDATED" = true  ]; then
+	if [ "$CHART_UPDATED" = false ] && [ "$IMAGES_UPDATED" = true  ]; then
 		package_version=$(yq '.packageVersion' packages/rke2-coredns/package.yaml)
 		new_version=$(printf "%02d" $(($package_version + 1)))
 		yq -i ".packageVersion = $new_version" packages/rke2-coredns/package.yaml
