@@ -33,6 +33,8 @@ sources:
         kind: regex
         # pattern accepts any semver constraint
         pattern: "v[0-9]+.[0-9]+.[0-9]+-build[0-9]+"
+    transformers:
+      - trimPrefix: "coredns-"
   autoscaler:
     name: Get autoscaler image version
     kind: githubrelease
