@@ -18,7 +18,7 @@ sources:
         # pattern accepts any semver constraint without leading 'v'
         pattern: "[0-9]+.[0-9]+.[0-9]"
     transformers:
-      - trimPrefix: "coredns-"
+      - trimprefix: "coredns-"
   coredns:
     name: Get coredns image version
     kind: githubrelease
