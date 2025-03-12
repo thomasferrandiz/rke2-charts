@@ -60,5 +60,4 @@ if [ -n "$COREDNS_CHART_VERSION" ]; then
 	GOCACHE='/home/azureuser/.cache/go-build' GOPATH='/home/azureuser/go' PACKAGE='rke2-coredns' make patch
 	# clean-up
 	make clean
-	fi
 fi
