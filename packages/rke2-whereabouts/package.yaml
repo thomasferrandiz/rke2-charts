@@ -2,4 +2,10 @@ url: local
 workingDir: charts
 packageVersion: 00
 # whereabouts is only used as a dependency of multus
-doNotRelease: true
+# doNotRelease: true
+additionalCharts:
+  - workingDir: charts-crd
+    crdOptions:
+      templateDirectory: crd-template
+      crdDirectory: templates
+      addCRDValidationToMainChart: false
