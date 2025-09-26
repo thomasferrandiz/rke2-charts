@@ -10,7 +10,7 @@ releaseCandidateVersion: 00
 workingDir: # The directory within your package that will contain your working copy of the chart (e.g. charts)
 url: # A URL pointing to an UpstreamConfiguration
 subdirectory: # Optional field for a specific subdirectory for all upstreams
-commit: # Optional field for a specific commit if your URL point to a Github Repository
+commit: # Optional field for a specific commit if your URL points to a Github Repository
 additionalCharts:
 # These contain other charts that you would like to package alongside this chart
 - workingDir: # same as above
