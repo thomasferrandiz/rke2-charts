@@ -23,10 +23,24 @@ tier: node
 app: {{ .Chart.Name }}-dnc
 {{- end }}
 
+{{- define "multiNetworkPolicy.labels" }}
+tier: node
+app: {{ .Chart.Name }}-mnp
+{{- end }}
+
 {{- define "system_default_registry" -}}
 {{- if .Values.global.systemDefaultRegistry -}}
 {{- printf "%s/" .Values.global.systemDefaultRegistry -}}
 {{- else -}}
 {{- "" -}}
+{{- end -}}
+{{- end -}}
+
+{{- define "multiNetworkPolicy.image" -}}
+{{- $image := .Values.multiNetworkPolicy.image -}}
+{{- if and .Values.global.prime .Values.global.prime.enabled -}}
+{{ template "system_default_registry" . }}{{ $image.primeRepository }}:{{ $image.primeTag }}
+{{- else -}}
+{{ $image.repository }}:{{ $image.tag }}
 {{- end -}}
 {{- end -}}

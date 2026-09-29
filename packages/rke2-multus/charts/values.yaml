@@ -50,6 +50,13 @@ pod:
       requests:
         cpu: "100m"
         memory: "50Mi"
+    multiNetworkPolicy:
+      requests:
+        cpu: "100m"
+        memory: "80Mi"
+      limits:
+        cpu: "100m"
+        memory: "150Mi"
 
 #podSecurityContext: {}
   # fsGroup: 2000
@@ -154,6 +161,8 @@ dhcpDaemonSet:
 
 global:
   systemDefaultRegistry: ""
+  prime:
+    enabled: false
 
 rke2-whereabouts:
   enabled: false
@@ -178,3 +187,33 @@ dynamicNetworksController:
   sockets:
     containerd: /run/k3s/containerd/containerd.sock
     multus: /run/multus/multus.sock
+
+# This deploys the multi-networkpolicy nftables controller.
+# The MultiNetworkPolicy CRD is always installed by rke2-multus-crd.
+# See https://github.com/k8snetworkplumbingwg/multi-networkpolicy-nftables for more details
+multiNetworkPolicy:
+  enabled: false
+  image:
+    repository: ghcr.io/k8snetworkplumbingwg/multi-networkpolicy-nftables
+    tag: v0.1.0
+    # used instead of repository/tag when global.prime.enabled=true
+    primeRepository: rancher/hardened-multi-networkpolicy-nftables
+    primeTag: ""
+    pullPolicy: IfNotPresent
+  logLevel: 2
+  # path on the host, the controller prepends the host filesystem mount
+  containerRuntimeEndpoint: /run/k3s/containerd/containerd.sock
+  # CNI plugins whose secondary interfaces are subject to MultiNetworkPolicies
+  networkPlugins:
+    - macvlan
+    - ipvlan
+  acceptICMP: true
+  acceptICMPv6: true
+  # Optional nftables rules added to ingress and egress chains, e.g.
+  # v4: |
+  #   tcp dport 9999 accept
+  #   ip saddr 192.168.100.0/24 accept
+  customRules:
+    v4: ""
+    v6: ""
+  extraArgs: []

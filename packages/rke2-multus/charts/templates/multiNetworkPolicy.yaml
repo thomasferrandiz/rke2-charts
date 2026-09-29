@@ -1,0 +1,167 @@
+{{- if .Values.multiNetworkPolicy.enabled }}
+{{- $customRules := .Values.multiNetworkPolicy.customRules }}
+{{- if .Values.manifests.clusterRole }}
+---
+kind: ClusterRole
+apiVersion: rbac.authorization.k8s.io/v1
+metadata:
+  name: {{ .Chart.Name }}-mnp
+rules:
+  - apiGroups: ["k8s.cni.cncf.io"]
+    resources:
+      - '*'
+    verbs:
+      - '*'
+  - apiGroups:
+      - ""
+    resources:
+      - pods
+      - pods/status
+      - namespaces
+    verbs:
+      - get
+      - list
+      - watch
+  - apiGroups: ["networking.k8s.io"]
+    resources:
+      - networkpolicies
+    verbs:
+      - get
+      - list
+      - watch
+{{- end }}
+{{- if .Values.manifests.clusterRoleBinding }}
+---
+kind: ClusterRoleBinding
+apiVersion: rbac.authorization.k8s.io/v1
+metadata:
+  name: {{ .Chart.Name }}-mnp
+roleRef:
+  apiGroup: rbac.authorization.k8s.io
+  kind: ClusterRole
+  name: {{ .Chart.Name }}-mnp
+subjects:
+  - kind: ServiceAccount
+    name: {{ .Chart.Name }}-mnp
+    namespace: {{ .Release.Namespace }}
+{{- end }}
+{{- if .Values.manifests.serviceAccount }}
+---
+apiVersion: v1
+kind: ServiceAccount
+metadata:
+  name: {{ .Chart.Name }}-mnp
+  namespace: {{ .Release.Namespace }}
+{{- end }}
+{{- if or $customRules.v4 $customRules.v6 }}
+---
+kind: ConfigMap
+apiVersion: v1
+metadata:
+  name: {{ .Release.Name }}-mnp-custom-rules
+  namespace: {{ .Release.Namespace }}
+  labels:
+{{- include "multiNetworkPolicy.labels" . | indent 4 }}
+data:
+  {{- with $customRules.v4 }}
+  custom-v4-rules.txt: |
+    {{- . | nindent 4 }}
+  {{- end }}
+  {{- with $customRules.v6 }}
+  custom-v6-rules.txt: |
+    {{- . | nindent 4 }}
+  {{- end }}
+{{- end }}
+---
+apiVersion: apps/v1
+kind: DaemonSet
+metadata:
+  name: {{ .Release.Name }}-mnp
+  namespace: {{ .Release.Namespace }}
+  labels:
+{{- include "multiNetworkPolicy.labels" . | indent 4 }}
+spec:
+  selector:
+    matchLabels:
+      app: {{ .Chart.Name }}-mnp
+  updateStrategy:
+    type: RollingUpdate
+    rollingUpdate:
+      maxUnavailable: 1
+  template:
+    metadata:
+      labels:
+{{- include "multiNetworkPolicy.labels" . | indent 8 }}
+    spec:
+      priorityClassName: system-node-critical
+      hostNetwork: true
+      {{- with .Values.imagePullSecrets }}
+      imagePullSecrets:
+        {{- toYaml . | nindent 8 }}
+      {{- end }}
+      nodeSelector: {{- toYaml .Values.labels.nodeSelector | nindent 8 }}
+      {{- with .Values.tolerations }}
+      tolerations:
+        {{- toYaml . | trim | nindent 8 }}
+      {{- end }}
+      serviceAccountName: {{ .Chart.Name }}-mnp
+      containers:
+      - name: multi-networkpolicy-nftables
+        image: {{ include "multiNetworkPolicy.image" . }}
+        imagePullPolicy: {{ .Values.multiNetworkPolicy.image.pullPolicy }}
+        command: [ "/multi-networkpolicy-nftables" ]
+        args:
+          - "--zap-log-level={{ .Values.multiNetworkPolicy.logLevel }}"
+          - "--hostname-override=$(NODE_NAME)"
+          - "--container-runtime-endpoint={{ .Values.multiNetworkPolicy.containerRuntimeEndpoint }}"
+          - "--network-plugins={{ join "," .Values.multiNetworkPolicy.networkPlugins }}"
+          - "--host-prefix=/host"
+          {{- if .Values.multiNetworkPolicy.acceptICMP }}
+          - "--accept-icmp"
+          {{- end }}
+          {{- if .Values.multiNetworkPolicy.acceptICMPv6 }}
+          - "--accept-icmpv6"
+          {{- end }}
+          {{- if $customRules.v4 }}
+          - "--custom-v4-ingress-rule-file=/etc/multi-networkpolicy/rules/custom-v4-rules.txt"
+          - "--custom-v4-egress-rule-file=/etc/multi-networkpolicy/rules/custom-v4-rules.txt"
+          {{- end }}
+          {{- if $customRules.v6 }}
+          - "--custom-v6-ingress-rule-file=/etc/multi-networkpolicy/rules/custom-v6-rules.txt"
+          - "--custom-v6-egress-rule-file=/etc/multi-networkpolicy/rules/custom-v6-rules.txt"
+          {{- end }}
+          {{- range .Values.multiNetworkPolicy.extraArgs }}
+          - {{ . | quote }}
+          {{- end }}
+        env:
+          - name: NODE_NAME
+            valueFrom:
+              fieldRef:
+                fieldPath: spec.nodeName
+        {{- if .Values.pod.resources.enabled }}
+        resources: {{- toYaml .Values.pod.resources.multiNetworkPolicy | nindent 10 }}
+        {{- end }}
+        securityContext:
+          privileged: true
+          capabilities:
+            add: ["SYS_ADMIN", "NET_ADMIN"]
+        terminationMessagePolicy: FallbackToLogsOnError
+        volumeMounts:
+          - name: host
+            mountPath: /host
+          {{- if or $customRules.v4 $customRules.v6 }}
+          - name: custom-rules
+            mountPath: /etc/multi-networkpolicy/rules
+            readOnly: true
+          {{- end }}
+      terminationGracePeriodSeconds: 10
+      volumes:
+        - name: host
+          hostPath:
+            path: /
+        {{- if or $customRules.v4 $customRules.v6 }}
+        - name: custom-rules
+          configMap:
+            name: {{ .Release.Name }}-mnp-custom-rules
+        {{- end }}
+{{- end }}
