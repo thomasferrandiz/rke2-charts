@@ -52,6 +52,43 @@ sources:
         # pattern accepts any semver constraint
         pattern: "v[0-9]+.[0-9]+.[0-9]+-build[0-9]+"
 
+  mirrored_network_controller:
+    name: Get mirrored dynamic network controller version
+    kind: dockerimage
+    spec:
+      image: rancher/mirrored-k8snetworkplumbingwg-multus-dynamic-networks-controller
+      # Only match plain semver tags (ignore arch-suffixed tags)
+      tagfilter: "^v[0-9]+\\.[0-9]+\\.[0-9]+$"
+      versionfilter:
+        kind: semver
+
+  multi_networkpolicy:
+    name: Get multi-networkpolicy-nftables version
+    kind: githubrelease
+    spec:
+      owner: rancher
+      repository: image-build-multi-networkpolicy-nftables
+      token: '{{ requiredEnv .github.token }}'
+      username: '{{ requiredEnv .github.username }}'
+      typefilter:
+        release: true
+        draft: false
+        prerelease: false
+      versionfilter:
+        kind: regex
+        # pattern accepts any semver constraint
+        pattern: "v[0-9]+.[0-9]+.[0-9]+-build[0-9]+"
+
+  mirrored_multi_networkpolicy:
+    name: Get mirrored multi-networkpolicy-nftables version
+    kind: dockerimage
+    spec:
+      image: rancher/mirrored-k8snetworkplumbingwg-multi-networkpolicy-nftables
+      # Only match plain semver tags (ignore arch-suffixed tags)
+      tagfilter: "^v[0-9]+\\.[0-9]+\\.[0-9]+$"
+      versionfilter:
+        kind: semver
+
 
 targets:
   multusImage:
@@ -68,6 +105,12 @@ targets:
           value: '{{ source "cni_plugins" }}'
         - name: NETWORK_CONTROLLER_VERSION
           value: '{{ source "network_controller" }}'
+        - name: MIRRORED_NETWORK_CONTROLLER_VERSION
+          value: '{{ source "mirrored_network_controller" }}'
+        - name: MULTI_NETWORKPOLICY_VERSION
+          value: '{{ source "multi_networkpolicy" }}'
+        - name: MIRRORED_MULTI_NETWORKPOLICY_VERSION
+          value: '{{ source "mirrored_multi_networkpolicy" }}'
         - name: PATH
         - name: UPDATECLI_GITHUB_WORKFLOW_URL
         - name: GH_TOKEN
@@ -86,7 +129,7 @@ scms:
       
 actions:
   default:
-    title: 'Update Multus version to {{ source "multus" }}, CNI plugins to {{ source "cni_plugins" }} and dynamic network controller to {{ source "network_controller" }}'
+    title: 'Update Multus version to {{ source "multus" }}, CNI plugins to {{ source "cni_plugins" }}, dynamic network controller to {{ source "network_controller" }} , mirrored dynamic network controller to {{ source "mirrored_network_controller" }}, multi-networkpolicy-nftables to {{ source "multi_networkpolicy" }} and mirrored multi-networkpolicy-nftables to {{ source "mirrored_multi_networkpolicy" }}'
     kind: github/pullrequest
     spec:
       strategy:

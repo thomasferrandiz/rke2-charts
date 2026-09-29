@@ -111,7 +111,7 @@ spec:
               valueFrom:
                 fieldRef:
                     fieldPath: spec.nodeName
-          image: {{ template "system_default_registry" . }}{{ .Values.dynamicNetworksController.image.repository }}:{{ .Values.dynamicNetworksController.image.tag }}
+          image: {{ include "rke2-multus.image" (dict "root" $ "image" .Values.dynamicNetworksController.image "name" "dynamicNetworksController.image") }}
           command: [ "/dynamic-networks-controller" ]
           args:
             - "-config=/etc/dynamic-networks-controller/dynamic-networks-config.json"
